@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infografía Interactiva - Control de Vacaciones</title>
+    <!-- Tailwind CSS para diseño moderno -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos optimizados para la impresión / guardado en PDF */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+                font-size: 12px;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-card {
+                box-shadow: none !important;
+                border: 1px solid #e2e8f0 !important;
+                break-inside: avoid;
+            }
+            .print-container {
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            /* Forzar colores de fondo en impresión */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen antialiased transition-colors duration-200">
+
+    <!-- PANTALLA DE LOGIN (Visible por defecto si no hay sesión) -->
+    <div id="login-screen" class="no-print min-h-screen flex flex-col items-center justify-center bg-gradient-to-tr from-slate-900 via-slate-800 to-teal-950 px-4 py-12 transition-all duration-300">
+        <div class="max-w-md w-full space-y-8 bg-white/95 backdrop-blur-md p-8 sm:p-10 rounded-2xl shadow-2xl border border-white/20">
+            <div class="text-center">
+                <div class="inline-flex items-center justify-center p-3 bg-teal-50 text-teal-600 rounded-2xl mb-4">
+                    <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Control de Vacaciones</h2>
+                <p class="mt-2 text-sm text-slate-500">Ingresa tus credenciales para acceder a la infografía</p>
+            </div>
+
+            <!-- Formulario de Login -->
+            <form class="mt-8 space-y-6" onsubmit="handleLogin(event)">
+                <div class="space-y-4">
+                    <div>
+                        <label for="username" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Usuario</label>
+                        <input id="username" name="username" type="text" required class="appearance-none rounded-xl relative block w-full px-4 py-3 border border-slate-200 placeholder-slate-400 text-slate-950 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm transition-all bg-slate-50/50" placeholder="Nombre de usuario">
+                    </div>
+                    <div>
+                        <label for="password" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Contraseña</label>
+                        <div class="relative">
+                            <input id="password" name="password" type="password" required class="appearance-none rounded-xl relative block w-full px-4 py-3 pr-12 border border-slate-200 placeholder-slate-400 text-slate-950 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm transition-all bg-slate-50/50" placeholder="••••••••">
+                            
+                            <!-- Botón Ojo para Mostrar/Ocultar Contraseña -->
+                            <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none transition-colors">
+                                <!-- Ícono Ojo Abierto -->
+                                <svg id="eye-open-icon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                                <!-- Ícono Ojo Cerrado / Tachado -->
+                                <svg id="eye-closed-icon" class="h-5 w-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mensaje de Error en Login -->
+                <div id="login-error-msg" class="hidden p-3 bg-red-50 border border-red-100 text-red-700 text-xs rounded-xl font-medium text-center">
+                    Usuario o contraseña incorrectos. Por favor intenta de nuevo.
+                </div>
+
+                <div>
+                    <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-xl text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 shadow-md transition-all cursor-pointer">
+                        Ingresar al Panel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- CONTENIDO DE LA INFOGRAFÍA (Oculto por defecto hasta loguearse) -->
+    <div id="dashboard-screen" class="hidden print-container max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        
+        <!-- Encabezado / Control de Impresión, Edición y Logout -->
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-200 pb-6 mb-8 gap-4">
+            <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs font-bold text-teal-600 uppercase tracking-widest">Reporte de Gestión Humana</span>
+                    <span id="role-badge" class="no-print px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wider"></span>
+                </div>
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight mt-1">Infografía de Vacaciones</h1>
+                <p class="text-slate-500 text-sm mt-1">Panel de control interactivo y editable de vacaciones de colaboradores.</p>
+            </div>
+            
+            <div class="no-print flex flex-wrap gap-3">
+                <!-- Botón para Abrir Modal de Edición (Solo Admin) -->
+                <button id="btn-modificar-datos" onclick="openEditModal()" class="hidden inline-flex items-center justify-center px-4 py-2.5 border border-slate-200 text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 shadow-sm transition-all cursor-pointer">
+                    <!-- Icono de Edición SVG -->
+                    <svg class="mr-2 h-4 w-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2.5 2.5 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    Modificar Datos
+                </button>
+
+                <!-- Botón de Impresión / Guardado PDF (Todos) -->
+                <button onclick="window.print()" class="inline-flex items-center justify-center px-4 py-2.5 border border-transparent text-sm font-medium rounded-lg text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 shadow-sm transition-all cursor-pointer">
+                    <!-- Icono de Impresora SVG -->
+                    <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                    </svg>
+                    Imprimir / Guardar en PDF
+                </button>
+
+                <!-- Botón de Cerrar Sesión -->
+                <button onclick="handleLogout()" class="inline-flex items-center justify-center px-4 py-2.5 border border-red-200 text-sm font-medium rounded-lg text-red-600 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all cursor-pointer">
+                    <!-- Icono de Logout SVG -->
+                    <svg class="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                    Cerrar Sesión
+                </button>
+            </div>
+        </header>
+
+        <!-- Sección de Resumen Global (KPIs) -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            <!-- KPI Colaboradores -->
+            <div class="print-card bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">
+                <div class="p-3 rounded-xl bg-teal-50 text-teal-600">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Colaboradores</p>
+                    <p id="kpi-total-colaboradores" class="text-2xl font-bold text-slate-800">-</p>
+                </div>
+            </div>
+
+            <!-- KPI Pendientes -->
+            <div class="print-card bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">
+                <div class="p-3 rounded-xl bg-amber-50 text-amber-600">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Días Pendientes</p>
+                    <p id="kpi-dias-pendientes" class="text-2xl font-bold text-slate-800">-</p>
+                </div>
+            </div>
+
+            <!-- KPI Tomadas -->
+            <div class="print-card bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">
+                <div class="p-3 rounded-xl bg-indigo-50 text-indigo-600">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Días Tomados</p>
+                    <p id="kpi-dias-tomados" class="text-2xl font-bold text-slate-800">-</p>
+                </div>
+            </div>
+
+            <!-- KPI Tasa de Uso -->
+            <div class="print-card bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">
+                <div class="p-3 rounded-xl bg-emerald-50 text-emerald-600">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.003 9.003 0 1020.945 13H11V3.055z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Porcentaje Gozado</p>
+                    <p id="kpi-porcentaje-gozado" class="text-2xl font-bold text-slate-800">-</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Visualización de Tarjetas de Colaboradores (Diseño Infográfico) -->
+        <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center">
+            <span class="w-2.5 h-6 bg-teal-600 rounded-full mr-2"></span>
+            Detalle por Colaborador
+        </h2>
+
+        <!-- Contenedor dinámico de tarjetas -->
+        <div id="cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            <!-- Cargado por JavaScript -->
+        </div>
+
+        <!-- Tabla Estructurada para Consolidado de Datos -->
+        <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center">
+            <span class="w-2.5 h-6 bg-teal-600 rounded-full mr-2"></span>
+            Consolidado General de Vacaciones
+        </h2>
+
+        <div class="print-card bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-12">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+                    <thead class="bg-slate-50/75">
+                        <tr>
+                            <th scope="col" class="px-6 py-4 font-bold text-slate-500 uppercase tracking-wider text-xs">Nombre</th>
+                            <th scope="col" class="px-6 py-4 font-bold text-slate-500 uppercase tracking-wider text-xs">Apellido</th>
+                            <th scope="col" class="px-6 py-4 font-bold text-amber-600 uppercase tracking-wider text-xs text-right">Días Vacaciones Pendientes</th>
+                            <th scope="col" class="px-6 py-4 font-bold text-indigo-600 uppercase tracking-wider text-xs text-right">Días Vacaciones Tomadas</th>
+                            <th scope="col" class="px-6 py-4 font-bold text-slate-500 uppercase tracking-wider text-xs text-right">Total Acumulado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="divide-y divide-slate-100">
+                        <!-- Cargado por JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Leyenda explicativa / Pie de Infografía -->
+        <footer class="border-t border-slate-200 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-400">
+            <div class="flex items-center space-x-4">
+                <span class="flex items-center"><span class="w-3 h-3 bg-amber-500 rounded-sm mr-1.5 inline-block"></span> Días Pendientes</span>
+                <span class="flex items-center"><span class="w-3 h-3 bg-indigo-500 rounded-sm mr-1.5 inline-block"></span> Días Tomados</span>
+            </div>
+            <div>
+                <span>Sistema de Control Interactivo de Vacaciones • Generado automáticamente</span>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- MODAL DE EDICIÓN FLOTANTE (Invisible por defecto, solo utilizable por admin) -->
+    <div id="edit-modal" class="no-print fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-xl overflow-hidden flex flex-col m-4 transform scale-95 transition-transform duration-300" id="modal-content">
+            <!-- Header Modal -->
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900">Modificar Datos de Vacaciones</h3>
+                    <p class="text-xs text-slate-500">Los cambios se verán reflejados inmediatamente en gráficos y KPIs</p>
+                </div>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Contenido / Inputs -->
+            <div class="px-6 py-4 overflow-y-auto flex-1 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="modal-inputs-grid">
+                    <!-- Formulario de empleados generado por JS -->
+                </div>
+                
+                <div id="modal-error-msg" class="hidden p-3 bg-red-50 border border-red-100 text-red-700 text-xs rounded-lg font-medium">
+                    Por favor, ingresa únicamente valores numéricos positivos.
+                </div>
+            </div>
+
+            <!-- Footer Modal -->
+            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-between items-center gap-3">
+                <button onclick="resetToDefaults()" class="text-xs font-semibold text-teal-600 hover:text-teal-800 hover:underline flex items-center transition-all">
+                    <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18.2"></path>
+                    </svg>
+                    Restablecer valores originales
+                </button>
+                <div class="flex gap-2">
+                    <button onclick="closeEditModal()" class="px-4 py-2 border border-slate-200 text-sm font-medium rounded-lg text-slate-600 bg-white hover:bg-slate-50">
+                        Cancelar
+                    </button>
+                    <button onclick="saveAndRender()" class="px-4 py-2 text-sm font-medium rounded-lg text-white bg-teal-600 hover:bg-teal-700 shadow-sm">
+                        Guardar Cambios
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript para el manejo interactivo y autenticación -->
+    <script>
+        // Datos iniciales entregados por el usuario
+        const initialColaboradores = [
+            { id: 1, nombre: "Susana", apellido: "Chamorro", pendientes: 20, tomados: 0 },
+            { id: 2, nombre: "Williams", apellido: "Droguet", pendientes: 15, tomados: 5 },
+            { id: 3, nombre: "Gianfranco", apellido: "Pietrantoni", pendientes: 10, tomados: 10 },
+            { id: 4, font: "bold", nombre: "Patricia", apellido: "Palavecino", pendientes: 0, tomados: 0 },
+            { id: 5, nombre: "Cristobal", apellido: "Milivojevic", pendientes: 20, tomados: 0 },
+            { id: 6, nombre: "Eduardo", apellido: "Violdo", pendientes: 25, tomados: 10 }
+        ];
+
+        // Estado del rol y colaboradores (Intentamos recuperar desde LocalStorage si existe)
+        let colaboradores = localStorage.getItem('vacaciones_colaboradores') 
+            ? JSON.parse(localStorage.getItem('vacaciones_colaboradores')) 
+            : JSON.parse(JSON.stringify(initialColaboradores));
+            
+        let userRole = sessionStorage.getItem('current_user_role') || null;
+
+        // Inicializar la aplicación al cargar
+        window.onload = function() {
+            checkSession();
+        };
+
+        // Comprobar si hay una sesión activa de rol
+        function checkSession() {
+            if (userRole) {
+                // Ocultar login, mostrar dashboard
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('dashboard-screen').classList.remove('hidden');
+                
+                // Configurar elementos según rol
+                setupRoleUI();
+                renderApp();
+            } else {
+                // Asegurar mostrar login
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('dashboard-screen').classList.add('hidden');
+            }
+        }
+
+        // Manejo del Login de usuario con las credenciales solicitadas
+        function handleLogin(event) {
+            event.preventDefault();
+            const usernameInput = document.getElementById('username').value.trim().toLowerCase();
+            const passwordInput = document.getElementById('password').value;
+            const errorMsg = document.getElementById('login-error-msg');
+            
+            errorMsg.classList.add('hidden');
+
+            // Validación de credenciales específicas
+            if (usernameInput === 'edovioldo' && passwordInput === 'Ed1690#%') {
+                userRole = 'admin';
+            } else if (usernameInput === 'matijimenez' && passwordInput === 'Ma2025&@') {
+                userRole = 'user';
+            } else {
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            // Almacenar el rol en la sesión para evitar login innecesario al recargar
+            sessionStorage.setItem('current_user_role', userRole);
+            
+            // Limpiar inputs de login
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+
+            // Refrescar vistas
+            checkSession();
+        }
+
+        // Manejo del Cierre de sesión (Logout)
+        function handleLogout() {
+            userRole = null;
+            sessionStorage.removeItem('current_user_role');
+            checkSession();
+        }
+
+        // Alternar visibilidad de contraseña
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const eyeOpen = document.getElementById('eye-open-icon');
+            const eyeClosed = document.getElementById('eye-closed-icon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeOpen.classList.add('hidden');
+                eyeClosed.classList.remove('hidden');
+            } else {
+                passwordInput.type = 'password';
+                eyeOpen.classList.remove('hidden');
+                eyeClosed.classList.add('hidden');
+            }
+        }
+
+        // Configuración de interfaz según privilegios de rol
+        function setupRoleUI() {
+            const btnModificar = document.getElementById('btn-modificar-datos');
+            const badge = document.getElementById('role-badge');
+
+            if (userRole === 'admin') {
+                btnModificar.classList.remove('hidden');
+                badge.innerText = 'Administrador (Editor)';
+                badge.className = "no-print px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wider bg-teal-100 text-teal-800 border border-teal-200";
+            } else {
+                btnModificar.classList.add('hidden');
+                badge.innerText = 'Lector (Solo Vista)';
+                badge.className = "no-print px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200";
+            }
+        }
+
+        // Función Principal para calcular y actualizar la vista de la infografía
+        function renderApp() {
+            // Guardar en LocalStorage para mantener ediciones hechas por admin
+            localStorage.setItem('vacaciones_colaboradores', JSON.stringify(colaboradores));
+
+            // 1. Cálculos de KPIs Globales
+            const totalColaboradores = colaboradores.length;
+            let totalPendientes = 0;
+            let totalTomados = 0;
+
+            colaboradores.forEach(c => {
+                totalPendientes += c.pendientes;
+                totalTomados += c.tomados;
+            });
+
+            const totalAsignados = totalPendientes + totalTomados;
+            const porcentajeGozado = totalAsignados > 0 
+                ? ((totalTomados / totalAsignados) * 100).toFixed(1) 
+                : "0.0";
+
+            // Actualizar elementos HTML de KPIs
+            document.getElementById('kpi-total-colaboradores').innerText = totalColaboradores;
+            document.getElementById('kpi-dias-pendientes').innerText = `${totalPendientes} días`;
+            document.getElementById('kpi-dias-tomados').innerText = `${totalTomados} días`;
+            document.getElementById('kpi-porcentaje-gozado').innerText = `${porcentajeGozado} %`;
+
+            // 2. Renderizar Tarjetas Individuales
+            const cardsContainer = document.getElementById('cards-container');
+            cardsContainer.innerHTML = ''; // Limpiar contenedor
+
+            colaboradores.forEach(c => {
+                const iniciales = (c.nombre[0] || '') + (c.apellido[0] || '');
+                const sumaDias = c.pendientes + c.tomados;
+                const porcentajeIndividual = sumaDias > 0 
+                    ? Math.round((c.tomados / sumaDias) * 100) 
+                    : 0;
+
+                let widthPendientes = "100%";
+                let widthTomados = "0%";
+                if (sumaDias > 0) {
+                    widthPendientes = `${(c.pendientes / sumaDias) * 100}%`;
+                    widthTomados = `${(c.tomados / sumaDias) * 100}%`;
+                }
+
+                // Lógica de badges de estado de tarjeta
+                let badgeLabel = "Planificado";
+                let badgeClass = "bg-indigo-50 text-indigo-700 border-indigo-100";
+                let avatarClass = "bg-teal-100 text-teal-800";
+
+                if (c.pendientes === 0 && c.tomados === 0) {
+                    badgeLabel = "Sin saldo";
+                    badgeClass = "bg-slate-100 text-slate-600 border-slate-200";
+                    avatarClass = "bg-slate-100 text-slate-800";
+                } else if (c.tomados === 0) {
+                    badgeLabel = "Sin salidas";
+                    badgeClass = "bg-amber-50 text-amber-700 border-amber-100";
+                    avatarClass = "bg-teal-100 text-teal-800";
+                } else if (c.pendientes > 20) {
+                    badgeLabel = "Alto acumulado";
+                    badgeClass = "bg-sky-50 text-sky-700 border-sky-100";
+                    avatarClass = "bg-sky-100 text-sky-800";
+                } else if (c.tomados > 0 && c.pendientes > 0 && c.tomados === c.pendientes) {
+                    badgeLabel = "Equilibrado";
+                    badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-100";
+                    avatarClass = "bg-emerald-100 text-emerald-800";
+                }
+
+                const cardHTML = `
+                    <div class="print-card bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col justify-between transition-all hover:shadow-md">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-full ${avatarClass} font-bold flex items-center justify-center text-sm">
+                                    ${iniciales.toUpperCase()}
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-slate-800 text-base leading-tight">${c.nombre} ${c.apellido}</h3>
+                                    <span class="text-xs text-slate-400">Colaborador</span>
+                                </div>
+                            </div>
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full border ${badgeClass}">
+                                ${badgeLabel}
+                            </span>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-xs text-slate-500">
+                                <span>Progreso de vacaciones</span>
+                                <span class="font-bold">${sumaDias > 0 ? `${porcentajeIndividual}% de uso` : 'N/A'}</span>
+                            </div>
+                            
+                            <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden flex">
+                                ${sumaDias > 0 ? `
+                                    <div class="bg-amber-500 h-full" style="width: ${widthPendientes}"></div>
+                                    <div class="bg-indigo-500 h-full" style="width: ${widthTomados}"></div>
+                                ` : `
+                                    <div class="bg-slate-300 h-full w-full"></div>
+                                `}
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-2 text-center pt-2">
+                                <div class="${c.pendientes > 0 ? 'bg-amber-50/50 border-amber-100/50' : 'bg-slate-50 border-slate-200/50'} p-2 rounded-lg border">
+                                    <span class="block text-xs text-slate-500">Pendientes</span>
+                                    <span class="text-base font-bold ${c.pendientes > 0 ? 'text-amber-700' : 'text-slate-500'}">${c.pendientes} días</span>
+                                </div>
+                                <div class="${c.tomados > 0 ? 'bg-indigo-50/50 border-indigo-100/50' : 'bg-slate-50 border-slate-200/50'} p-2 rounded-lg border">
+                                    <span class="block text-xs text-slate-500">Tomados</span>
+                                    <span class="text-base font-bold ${c.tomados > 0 ? 'text-indigo-700' : 'text-slate-500'}">${c.tomados} días</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                cardsContainer.insertAdjacentHTML('beforeend', cardHTML);
+            });
+
+            // 3. Renderizar Tabla Consolidada
+            const tableBody = document.getElementById('table-body');
+            tableBody.innerHTML = '';
+
+            colaboradores.forEach(c => {
+                const totalAcumulado = c.pendientes + c.tomados;
+                const rowHTML = `
+                    <tr class="hover:bg-slate-50/50 transition-colors">
+                        <td class="px-6 py-4 font-semibold text-slate-900">${c.nombre}</td>
+                        <td class="px-6 py-4 text-slate-600">${c.apellido}</td>
+                        <td class="px-6 py-4 text-right font-bold ${c.pendientes > 0 ? 'text-amber-600' : 'text-slate-400'}">${c.pendientes} días</td>
+                        <td class="px-6 py-4 text-right ${c.tomados > 0 ? 'text-indigo-600 font-medium' : 'text-slate-400'}">${c.tomados} días</td>
+                        <td class="px-6 py-4 text-right ${totalAcumulado > 0 ? 'text-slate-500 font-semibold' : 'text-slate-400'}">${totalAcumulado} días</td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', rowHTML);
+            });
+        }
+
+        // FUNCIONES DEL MODAL DE EDICIÓN (SOLO ACCESIBLE POR EL ADMIN)
+
+        // Abrir Modal y cargar inputs dinámicamente
+        function openEditModal() {
+            if (userRole !== 'admin') return; // Bloqueo de seguridad a nivel de JS
+
+            const modalInputsGrid = document.getElementById('modal-inputs-grid');
+            modalInputsGrid.innerHTML = ''; // Limpiar entradas anteriores
+
+            colaboradores.forEach(c => {
+                const itemHTML = `
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-3">
+                        <div class="flex justify-between items-center border-b border-slate-200/60 pb-2 mb-2">
+                            <span class="text-xs font-bold text-slate-400 uppercase">Colaborador #${c.id}</span>
+                            <span class="text-xs text-teal-600 font-bold">${c.nombre} ${c.apellido}</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1">Nombre</label>
+                                <input type="text" id="edit-nombre-${c.id}" value="${c.nombre}" class="w-full px-2 py-1.5 text-xs bg-white border border-slate-200 rounded-md focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1">Apellido</label>
+                                <input type="text" id="edit-apellido-${c.id}" value="${c.apellido}" class="w-full px-2 py-1.5 text-xs bg-white border border-slate-200 rounded-md focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1">Días Pendientes</label>
+                                <input type="number" min="0" max="365" id="edit-pendientes-${c.id}" value="${c.pendientes}" class="w-full px-2 py-1.5 text-xs bg-white border border-slate-200 rounded-md focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 font-semibold text-amber-700">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1">Días Tomados</label>
+                                <input type="number" min="0" max="365" id="edit-tomados-${c.id}" value="${c.tomados}" class="w-full px-2 py-1.5 text-xs bg-white border border-slate-200 rounded-md focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 font-semibold text-indigo-700">
+                            </div>
+                        </div>
+                    </div>
+                `;
+                modalInputsGrid.insertAdjacentHTML('beforeend', itemHTML);
+            });
+
+            // Mostrar el modal con animación suave
+            const modal = document.getElementById('edit-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                document.getElementById('modal-content').classList.remove('scale-95');
+            }, 50);
+        }
+
+        // Cerrar el Modal de Edición
+        function closeEditModal() {
+            const modal = document.getElementById('edit-modal');
+            modal.classList.add('opacity-0');
+            document.getElementById('modal-content').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.getElementById('modal-error-msg').classList.add('hidden');
+            }, 300);
+        }
+
+        // Validar y Guardar los Cambios (Solo admin)
+        function saveAndRender() {
+            if (userRole !== 'admin') return;
+
+            const errorMsg = document.getElementById('modal-error-msg');
+            errorMsg.classList.add('hidden');
+            let hasError = false;
+
+            const updatedColaboradores = colaboradores.map(c => {
+                const nombreVal = document.getElementById(`edit-nombre-${c.id}`).value.trim();
+                const apellidoVal = document.getElementById(`edit-apellido-${c.id}`).value.trim();
+                const pendientesVal = parseInt(document.getElementById(`edit-pendientes-${c.id}`).value);
+                const tomadosVal = parseInt(document.getElementById(`edit-tomados-${c.id}`).value);
+
+                if (isNaN(pendientesVal) || pendientesVal < 0 || isNaN(tomadosVal) || tomadosVal < 0 || nombreVal === '' || apellidoVal === '') {
+                    hasError = true;
+                }
+
+                return {
+                    id: c.id,
+                    nombre: nombreVal,
+                    apellido: apellidoVal,
+                    pendientes: pendientesVal,
+                    tomados: tomadosVal
+                };
+            });
+
+            if (hasError) {
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            colaboradores = updatedColaboradores;
+            renderApp();
+            closeEditModal();
+        }
+
+        // Restablecer valores originales de fábrica
+        function resetToDefaults() {
+            if (userRole !== 'admin') return;
+            colaboradores = JSON.parse(JSON.stringify(initialColaboradores));
+            renderApp();
+            closeEditModal();
+        }
+    </script>
+
+</body>
+</html>
